@@ -52,6 +52,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+//!!include this file see all //!! for explanation
 #include "PuttyInterface/PuttyInterface.h"
 
 /* USER CODE END Includes */
@@ -60,6 +61,7 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
+//!!declare this struct
 PuttyInterfaceTypeDef puttystruct;
 /* USER CODE END PV */
 
@@ -68,6 +70,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+//!! create similar function protype
 void HandleCommand(char* input);
 /* USER CODE END PFP */
 
@@ -103,6 +106,7 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
+  //!! assign function pointer and init
   puttystruct.handle = HandleCommand;
   PuttyInterface_Init(&puttystruct);
   /* USER CODE END 2 */
@@ -111,11 +115,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  PuttyInterface_Update(&puttystruct);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+	  //!!run the update function for everything that needs to be done outside interrupts
+	  PuttyInterface_Update(&puttystruct);
   }
   /* USER CODE END 3 */
 
@@ -178,14 +182,17 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+//!!this function will receive the commands when the are complete strcmp(input, "command") will return zero if "command" is equal to input
 void HandleCommand(char* input){
 	if(!strcmp(input, "start")){
 		uprintf("started;>)\n\r");
+	}else if(!strcmp(input, "stop")){
+		uprintf("stopped\n\r");
 	}
 }
-
+//!! function gets called from usbd_cdc_if but needs to be added there in both c and h file
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
-	HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
 	puttystruct.huart2_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);
 }

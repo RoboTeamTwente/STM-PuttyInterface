@@ -5,10 +5,12 @@
  *      Author: Leon
  */
 
-#include "PuttyInterface.h"
+#include "../PuttyInterface/PuttyInterface.h"
 
 #if __has_include("stm32f0xx_hal.h")
 #  include "stm32f0xx_hal.h"
+#elif  __has_include("stm32f1xx_hal.h")
+#  include "stm32f1xx_hal.h"
 #elif  __has_include("stm32f3xx_hal.h")
 #  include "stm32f3xx_hal.h"
 #elif  __has_include("stm32f4xx_hal.h")
@@ -26,7 +28,12 @@ bool usb_comm = false;
 
 // clears the current line, so new text can be put in
 static void ClearLine(){
-	TextOut("\r                                                                                        \r");
+	/*char msg[MAX_COMMAND_LENGTH+1] = {'-'};
+	memset(msg+MAX_COMMAND_LENGTH, 0, 1);*/
+	TextOut("\r");
+	for(uint i = 0; i < MAX_COMMAND_LENGTH; i++)
+		TextOut(" ");
+	TextOut("\r");
 }
 
 // modulo keeping the value within the real range
@@ -43,25 +50,25 @@ static uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
 		dif -= modulus;
 	return (uint8_t) dif;
 }
-// This function deals with input by storing values and calling functoni func with a string of the input when its done
+// This function deals with input by storing values and calling function func with a string of the input when its done
 // also handles up and down keys
 // input is a pointer to the characters to handle,
 // n_chars is the amount of chars to handle
 // func is the function to call when a command is complete
 static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
-	static char PC_Input[COMMANDS_TO_REMEMBER][MAX_COMMAND_LENGTH];
-	static uint8_t PC_Input_counter = 0;
-	static int8_t commands_counter = 0;
-	static int8_t kb_arrow_counter = 0;
-	static uint8_t commands_overflow = 0;
-	if(input[0] == 0x0d){//newline, is end of command
-		kb_arrow_counter = 0;// reset the arrow input counter
+	static char PC_Input[COMMANDS_TO_REMEMBER][MAX_COMMAND_LENGTH];// Matrix which holds the entered commands
+	static uint8_t PC_Input_counter = 0;	// counts the letters in the current forming command
+	static int8_t commands_counter = 0;		// counts the entered commands
+	static int8_t kb_arrow_counter = 0;		// counts the offset from the last entered command
+	static uint8_t commands_overflow = 0;	// checks if there are COMMANDS_TO_REMEMBER commands stored
+	if(input[0] == 0x0d){						//newline, is end of command
+		kb_arrow_counter = 0;						// reset the arrow input counter
 		PC_Input[commands_counter][PC_Input_counter++] = '\0';
 		TextOut("\r");
 		TextOut(PC_Input[commands_counter]);
 		TextOut("\n\r");
 		PC_Input_counter = 0;
-		func(PC_Input[commands_counter++]);// Callback func
+		func(PC_Input[commands_counter++]);			// Callback func
         commands_overflow = !(commands_counter = commands_counter % COMMANDS_TO_REMEMBER) || commands_overflow;// if there are more than the maximum amount of stored values, this needs to be known
         PC_Input[commands_counter][0] = '\0';
 	}else if(input[0] == 0x08){//backspace
@@ -69,33 +76,38 @@ static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
 			PC_Input_counter--;
 	}else if(input[0] == 0x1b){//escape, also used for special keys in escape sequences
 		if(n_chars > 1){// an escape sequence
-			uprintf("more than one char\n\r");
 			switch(input[1]){
-				case 0x5b:// an arrow key
-					switch(input[2]){
-						case 'A'://arrow ^
-							kb_arrow_counter--;
-							break;
-						case 'B'://arrow \/;
-							kb_arrow_counter++;
-							break;
-						case 'C'://arrow ->
-							break;
-						case 'D'://arrow <-
-							break;
-					}
-					uint8_t cur_pos = commands_overflow ? wrap(commands_counter, kb_arrow_counter, COMMANDS_TO_REMEMBER) : wrap(commands_counter, kb_arrow_counter, commands_counter+1);
-					PC_Input_counter = strlen(PC_Input[cur_pos])-1;
-					PC_Input[cur_pos][PC_Input_counter] = '\r';
-					strcpy(PC_Input[commands_counter], PC_Input[cur_pos]);
-					ClearLine();
-					TextOut(PC_Input[commands_counter]);
+			case 0x5b:// an arrow key
+				switch(input[2]){
+				case 'A'://arrow ^
+					kb_arrow_counter--;
 					break;
+				case 'B'://arrow \/;
+					kb_arrow_counter++;
+					break;
+				case 'C'://arrow ->
+					break;
+				case 'D'://arrow <-
+					break;
+				}
+				uint8_t cur_pos = commands_overflow ? wrap(commands_counter, kb_arrow_counter, COMMANDS_TO_REMEMBER) : wrap(commands_counter, kb_arrow_counter, commands_counter+1);
+				PC_Input_counter = strlen(PC_Input[cur_pos]);
+				strcpy(PC_Input[commands_counter], PC_Input[cur_pos]);
+				ClearLine();
+				TextOut(PC_Input[commands_counter]);
+				break;
 			}
 		}
 	}else{// If it is not a special character, the value is put in the current string
-		uprintf("%c", input[0]);
-		PC_Input[commands_counter][PC_Input_counter++] = (char)input[0];
+		if(PC_Input_counter >= MAX_COMMAND_LENGTH){
+			ClearLine();
+			uprintf("ERROR: command too long\n\r");
+			memset(PC_Input[commands_counter], 0, MAX_COMMAND_LENGTH);
+			PC_Input_counter = 0;
+		}else{
+			uprintf("%c", input[0]);
+			PC_Input[commands_counter][PC_Input_counter++] = (char)input[0];
+		}
 	}
 }
 void TextOut(char *str){

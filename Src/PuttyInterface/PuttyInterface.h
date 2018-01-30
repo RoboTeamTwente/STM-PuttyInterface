@@ -26,7 +26,7 @@
 
 // amount of commands that will be remembered
 #define COMMANDS_TO_REMEMBER 16
-#define MAX_COMMAND_LENGTH   64
+#define MAX_COMMAND_LENGTH   32
 
 // function that works like normal printf()
 #define uprintf(...) sprintf(smallStrBuffer, __VA_ARGS__); \
