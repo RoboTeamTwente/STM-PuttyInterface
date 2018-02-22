@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : main.c
-  * Description        : Main program body
+  * @file           : main.c
+  * @brief          : Main program body
   ******************************************************************************
   * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -78,9 +78,13 @@ void HandleCommand(char* input);
 
 /* USER CODE END 0 */
 
+/**
+  * @brief  The application entry point.
+  *
+  * @retval None
+  */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -104,7 +108,6 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
-
   /* USER CODE BEGIN 2 */
   //!! assign function pointer and init
   puttystruct.handle = HandleCommand;
@@ -125,8 +128,10 @@ int main(void)
 
 }
 
-/** System Clock Configuration
-*/
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
 
@@ -191,54 +196,60 @@ void HandleCommand(char* input){
 		uprintf("stopped\n\r");
 	}
 }
-//!! function gets called from usbd_cdc_if but needs to be added there in both c and h file
+//!! function gets called from usbd_cdc_if but needs to be added there in both c and h file if uart is used include this function"
+/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+	if(huart->Instance == huart1.Instance){
+		puttystruct.huart2_Rx_len = 1;
+		puttystruct.small_buf[0] = *(huart->pRxBuffPtr-1);
+	}
+}*/
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
 	puttystruct.huart2_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);
 }
+
 /* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @param  None
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
   * @retval None
   */
-void _Error_Handler(char * file, int line)
+void _Error_Handler(char *file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
   {
   }
-  /* USER CODE END Error_Handler_Debug */ 
+  /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
-
+#ifdef  USE_FULL_ASSERT
 /**
-   * @brief Reports the name of the source file and the source line number
-   * where the assert_param error has occurred.
-   * @param file: pointer to the source file name
-   * @param line: assert_param error line source number
-   * @retval None
-   */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t* file, uint32_t line)
-{
+{ 
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
-
 }
-
-#endif
-
-/**
-  * @}
-  */ 
+#endif /* USE_FULL_ASSERT */
 
 /**
   * @}
-*/ 
+  */
+
+/**
+  * @}
+  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
