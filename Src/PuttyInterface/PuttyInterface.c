@@ -143,7 +143,7 @@ void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
 	char * startmessage = "----------PuttyInterface_Init-----------\n\r";
 	uprintf(startmessage);
 #ifdef PUTTY_USART
-	HAL_UART_Receive_IT(&huart2, pitd->rec_buf, 1);
+	HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
 #endif
 }
 
@@ -155,7 +155,7 @@ void PuttyInterface_Update(PuttyInterfaceTypeDef* pitd){
 		HandlePcInput((char*)&pitd->small_buf, pitd->huart2_Rx_len, pitd->handle);
 		pitd->huart2_Rx_len = 0;
 #ifdef PUTTY_USART
-		HAL_UART_Receive_IT(&huart2, pitd->rec_buf, 1);
+		HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
 #endif
 	}
 }
