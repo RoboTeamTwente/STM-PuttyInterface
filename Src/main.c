@@ -206,7 +206,7 @@ void HandleCommand(char* input){
 }*/
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
 	HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
-	puttystruct.huart2_Rx_len = Len;
+	puttystruct.huart_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);
 }
 
