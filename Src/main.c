@@ -190,10 +190,10 @@ void SystemClock_Config(void)
 
 //!!this function will receive the commands when the are complete strcmp(input, "command") will return zero if "command" is equal to input
 void HandleCommand(char* input){
-	if(!strcmp(input, "start")){
-		uprintf("started;>)\n\r");
-	}else if(!strcmp(input, "stop")){
-		uprintf("stopped\n\r");
+	if(!strcmp(input, "1")){
+		HAL_GPIO_WritePin(LD0_GPIO_Port,LD0_Pin, 1);
+	}else{
+		HAL_GPIO_WritePin(LD0_GPIO_Port,LD0_Pin, 0);
 	}
 }
 //!! function gets called from usbd_cdc_if but needs to be added there in both c and h file if uart is used include this function"
@@ -205,7 +205,6 @@ void HandleCommand(char* input){
 	}
 }*/
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
-	HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
 	puttystruct.huart_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);
 }
