@@ -1,3 +1,4 @@
+
 /**
   ******************************************************************************
   * @file           : main.c
@@ -192,8 +193,11 @@ void SystemClock_Config(void)
 void HandleCommand(char* input){
 	if(!strcmp(input, "1")){
 		HAL_GPIO_WritePin(LD0_GPIO_Port,LD0_Pin, 1);
+		HAL_GPIO_WritePin(peeper_GPIO_Port,peeper_Pin, 1);
+
 	}else{
 		HAL_GPIO_WritePin(LD0_GPIO_Port,LD0_Pin, 0);
+		HAL_GPIO_WritePin(peeper_GPIO_Port,peeper_Pin, 0);
 	}
 }
 //!! function gets called from usbd_cdc_if but needs to be added there in both c and h file if uart is used include this function"

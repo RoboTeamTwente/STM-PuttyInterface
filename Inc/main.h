@@ -61,6 +61,8 @@
 
 #define LD0_Pin GPIO_PIN_13
 #define LD0_GPIO_Port GPIOC
+#define peeper_Pin GPIO_PIN_9
+#define peeper_GPIO_Port GPIOB
 
 /* ########################## Assert Selection ############################## */
 /**
