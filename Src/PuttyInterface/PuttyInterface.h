@@ -29,8 +29,8 @@
 #define MAX_COMMAND_LENGTH   32
 
 // function that works like normal printf()
-#define uprintf(...) { sprintf(smallStrBuffer, __VA_ARGS__); \
-	TextOut(smallStrBuffer);}
+#define uprintf(...) do { sprintf(smallStrBuffer, __VA_ARGS__); \
+	TextOut(smallStrBuffer);} while(0)
 
 // function that will be called when HandlePcInput is done.
 typedef void (*HandleLine)(char * input);
