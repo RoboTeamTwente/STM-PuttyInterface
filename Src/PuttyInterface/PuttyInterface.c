@@ -7,13 +7,16 @@
 
 #include "../PuttyInterface/PuttyInterface.h"
 
-#if __has_include("stm32f0xx_hal.h")
+#ifdef STM32F0
 #  include "stm32f0xx_hal.h"
-#elif  __has_include("stm32f1xx_hal.h")
+#endif
+#ifdef STM32F1
 #  include "stm32f1xx_hal.h"
-#elif  __has_include("stm32f3xx_hal.h")
+#endif
+#ifdef STM32F3
 #  include "stm32f3xx_hal.h"
-#elif  __has_include("stm32f4xx_hal.h")
+#endif
+#ifdef STM32F4
 #  include "stm32f4xx_hal.h"
 #endif
 
@@ -27,20 +30,19 @@
 #endif
 
 // clears the current line, so new text can be put in
-static void ClearLine(){
-	/*char msg[MAX_COMMAND_LENGTH+1] = {'-'};
-	memset(msg+MAX_COMMAND_LENGTH, 0, 1);*/
-	TextOut("\r");
+static inline void ClearLine(){
+	putty_printf("\r");
 	for(uint i = 0; i < MAX_COMMAND_LENGTH; i++)
-		TextOut(" ");
-	TextOut("\r");
+		putty_printf(" ");
+	putty_printf("\r");
 }
 
-// modulo keeping the value within the real range
-// val is the start value,
-// dif is the difference that will be added
-// modulus is the value at which it wraps
-static uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
+/*	modulo keeping the value within the real range
+ *	val is the start value,
+ *	dif is the difference that will be added
+ *	modulus is the value at which it wraps
+ */
+static inline uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
 {
 	dif %= modulus;
 	if(dif < 0)
@@ -50,23 +52,24 @@ static uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
 		dif -= modulus;
 	return (uint8_t) dif;
 }
-// This function deals with input by storing values and calling function func with a string of the input when its done
-// also handles up and down keys
-// input is a pointer to the characters to handle,
-// n_chars is the amount of chars to handle
-// func is the function to call when a command is complete
+/*	This function deals with input by storing values and calling function func with a string of the input when its done
+ * 	also handles up and down keys
+ * 	input is a pointer to the characters to handle,
+ * 	n_chars is the amount of chars to handle
+ * 	func is the function to call when a command is complete
+ */
 static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
-	static char PC_Input[COMMANDS_TO_REMEMBER][MAX_COMMAND_LENGTH];// Matrix which holds the entered commands
-	static uint8_t PC_Input_counter = 0;	// counts the letters in the current forming command
-	static int8_t commands_counter = 0;		// counts the entered commands
-	static int8_t kb_arrow_counter = 0;		// counts the offset from the last entered command
-	static uint8_t commands_overflow = 0;	// checks if there are COMMANDS_TO_REMEMBER commands stored
-	if(input[0] == 0x0d){						//newline, is end of command
-		kb_arrow_counter = 0;						// reset the arrow input counter
+	static char PC_Input[COMMANDS_TO_REMEMBER][MAX_COMMAND_LENGTH];			// Matrix which holds the entered commands
+	static uint8_t PC_Input_counter = 0;									// counts the letters in the current forming command
+	static int8_t commands_counter = 0;										// counts the entered commands
+	static int8_t kb_arrow_counter = 0;										// counts the offset from the last entered command
+	static uint8_t commands_overflow = 0;									// checks if there are COMMANDS_TO_REMEMBER commands stored
+	if(input[0] == 0x0d){													// newline, is end of command
+		kb_arrow_counter = 0;												// reset the arrow input counter
 		PC_Input[commands_counter][PC_Input_counter++] = '\0';
-		TextOut("\r");
-		TextOut(PC_Input[commands_counter]);
-		TextOut("\n\r");
+		putty_printf("\r");
+		putty_printf(PC_Input[commands_counter]);
+		putty_printf("\n\r");
 		PC_Input_counter = 0;
 		func(PC_Input[commands_counter++]);			// Callback func
         commands_overflow = !(commands_counter = commands_counter % COMMANDS_TO_REMEMBER) || commands_overflow;// if there are more than the maximum amount of stored values, this needs to be known
@@ -94,33 +97,24 @@ static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
 				PC_Input_counter = strlen(PC_Input[cur_pos]);
 				strcpy(PC_Input[commands_counter], PC_Input[cur_pos]);
 				ClearLine();
-				TextOut(PC_Input[commands_counter]);
+				putty_printf(PC_Input[commands_counter]);
 				break;
 			}
 		}
 	}else{// If it is not a special character, the value is put in the current string
 		if(PC_Input_counter >= MAX_COMMAND_LENGTH){
 			ClearLine();
-			uprintf("ERROR: command too long\n\r");
+			putty_printf("ERROR: command too long\n\r");
 			memset(PC_Input[commands_counter], 0, MAX_COMMAND_LENGTH);
 			PC_Input_counter = 0;
 		}else{
-			uprintf("%c", input[0]);
+			putty_printf("%c", input[0]);
 			PC_Input[commands_counter][PC_Input_counter++] = (char)input[0];
 		}
 	}
 }
-void TextOut(char *str){
 
-#ifdef PUTTY_USART
-	HAL_UART_Transmit_IT(&huartx, (uint8_t*)str, putty_length);
-#endif
-#ifdef PUTTY_USB
-	while(CDC_Transmit_FS((uint8_t*)str, putty_length) == USBD_BUSY);
-#endif
-}
-
-void HexOut(uint8_t data[], uint8_t length){
+void PuttyInterface_HexOut(uint8_t data[], uint8_t length){
 #ifdef PUTTY_USART
 	HAL_UART_Transmit_IT(&huartx, data, length);
 #endif
@@ -139,7 +133,7 @@ void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
 	usb_comm = false;
 #endif
 	char * startmessage = "----------PuttyInterface_Init-----------\n\r";
-	uprintf(startmessage);
+	putty_printf(startmessage);
 #ifdef PUTTY_USART
 	HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
 #endif

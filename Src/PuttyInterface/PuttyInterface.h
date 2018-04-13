@@ -30,14 +30,14 @@
 
 // function that works like normal printf()
 #ifdef PUTTY_USART
-#define uprintf(...) do { \
+#define putty_printf(...) do { \
 	while(huartx.gState != HAL_UART_STATE_READY);\
 	putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
 	HAL_UART_Transmit_IT(&huartx, (uint8_t*)smallStrBuffer, putty_length);} while(0)
 #endif
 #ifdef PUTTY_USB
 bool usb_comm;
-#define uprintf(...) do { \
+#define putty_printf(...) do { \
 		if(usb_comm){\
 			putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
 			while(CDC_Transmit_FS((uint8_t*)smallStrBuffer, putty_length) == USBD_BUSY);\
@@ -56,14 +56,11 @@ typedef struct {
 
 char smallStrBuffer[1024];
 uint8_t putty_length;
-// Print string str to the pc
-// str is the string to print
-void TextOut(char *str);
 
 // Transmit raw data
 // data[] is the data,
 // length is the length of the data
-void HexOut(uint8_t*, uint8_t);
+void PuttyInterface_HexOut(uint8_t*, uint8_t);
 
 void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd);
 

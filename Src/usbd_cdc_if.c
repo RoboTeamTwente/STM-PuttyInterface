@@ -319,6 +319,11 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+//!! should be overwritten in user file
+__weak void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
+	UNUSED(Buf);
+	UNUSED(Len);
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**
