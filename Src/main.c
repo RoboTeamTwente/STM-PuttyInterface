@@ -1,3 +1,4 @@
+
 /**
   ******************************************************************************
   * @file           : main.c
@@ -48,6 +49,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -108,6 +110,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   //!! assign function pointer and init
   puttystruct.handle = HandleCommand;
@@ -116,12 +119,17 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  uint cnt = 0;
   while (1)
   {
 	  HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
-	  uprintf("hall0 allemaal wat\n\r");
-	  uprintf("fijn dat je er bent\n\r");
-	  uprintf("dit is nummer[%f]\n\r", result);
+	  uprintf("ik heb een potje\n\r");
+	  uprintf("met vet\n\r");
+	  uprintf("al op de tafel gezet\n\r");
+	  uprintf("ik heb een potje potje potje potje vehehehet\n\r");
+	  uprintf("al op de tafel gezt\n\r");
+	  uprintf("dit was het %ue couplet\n\r", cnt++);
+	  HAL_Delay(0);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */

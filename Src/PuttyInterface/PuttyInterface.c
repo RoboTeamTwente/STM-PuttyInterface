@@ -116,12 +116,11 @@ void TextOut(char *str){
 
 #ifdef PUTTY_USART
 	HAL_UART_Transmit(&huartx, (uint8_t*)str, length, 0xFFFF);
-	hUsbDeviceFS.
 #endif
 #ifdef PUTTY_USB
 	if(usb_comm){
-		CDC_Transmit_FS((uint8_t*)str, length);
-		HAL_Delay(1);
+		while(CDC_Transmit_FS((uint8_t*)str, length) == USBD_BUSY)
+			HAL_Delay(0);
 	}
 #endif
 }
@@ -150,21 +149,17 @@ void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
 }
 
 void PuttyInterface_Update(PuttyInterfaceTypeDef* pitd){
-	if(pitd->huart_Rx_len){
 #ifdef PUTTY_USB
-		usb_comm = true;
 	if(!usb_comm){
 		usb_comm = !!(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED);
 #endif
-		HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
-		pitd->huart_Rx_len = 0;
 		if(pitd->huart_Rx_len){
 			HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
 			pitd->huart_Rx_len = 0;
 #ifdef PUTTY_USART
-		HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
 			HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
-#endif
+#else
 		}
+#endif
 	}
 }
