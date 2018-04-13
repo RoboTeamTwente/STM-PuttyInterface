@@ -8,10 +8,10 @@
 #ifndef PUTTYINTERFACE_H_
 #define PUTTYINTERFACE_H_
 
-#define PUTTY_USB// or choose #define PUTTY_USART
+#define PUTTY_USART // or choose #define PUTTY_USART
 
 #ifdef PUTTY_USART
-#define huartx huart2
+#define huartx huart1
 #endif /* PUTTY_USART */
 
 #ifdef PUTTY_USART
@@ -29,9 +29,21 @@
 #define MAX_COMMAND_LENGTH   32
 
 // function that works like normal printf()
-#define uprintf(...) do { sprintf(smallStrBuffer, __VA_ARGS__); \
-	TextOut(smallStrBuffer);} while(0)
-
+#ifdef PUTTY_USART
+#define uprintf(...) do { \
+	while(huartx.gState != HAL_UART_STATE_READY);\
+	putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
+	HAL_UART_Transmit_IT(&huartx, (uint8_t*)smallStrBuffer, putty_length);} while(0)
+#endif
+#ifdef PUTTY_USB
+bool usb_comm;
+#define uprintf(...) do { \
+		if(usb_comm){\
+			putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
+			while(CDC_Transmit_FS((uint8_t*)smallStrBuffer, putty_length) == USBD_BUSY);\
+		}\
+	} while(0)
+#endif
 // function that will be called when HandlePcInput is done.
 typedef void (*HandleLine)(char * input);
 
@@ -43,7 +55,7 @@ typedef struct {
 }PuttyInterfaceTypeDef;
 
 char smallStrBuffer[1024];
-
+uint8_t putty_length;
 // Print string str to the pc
 // str is the string to print
 void TextOut(char *str);

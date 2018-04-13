@@ -49,6 +49,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_hal.h"
+#include "dma.h"
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
@@ -109,6 +110,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USB_DEVICE_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
@@ -127,9 +129,8 @@ int main(void)
 	  uprintf("met vet\n\r");
 	  uprintf("al op de tafel gezet\n\r");
 	  uprintf("ik heb een potje potje potje potje vehehehet\n\r");
-	  uprintf("al op de tafel gezt\n\r");
+	  uprintf("al op de tafel gezet\n\r");
 	  uprintf("dit was het %ue couplet\n\r", cnt++);
-	  HAL_Delay(0);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -208,14 +209,15 @@ void HandleCommand(char* input){
 		uprintf("stopped\n\r");
 	}
 }
+#ifdef PUTTY_USART
 //!! function gets called from usbd_cdc_if but needs to be added there in both c and h file if uart is used include this function"
-/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-	if(huart->Instance == huart1.Instance){
-		puttystruct.huart2_Rx_len = 1;
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+	if(huart->Instance == huartx.Instance){
+		puttystruct.huart_Rx_len = 1;
 		puttystruct.small_buf[0] = *(huart->pRxBuffPtr-1);
 	}
-}*/
+}
+#endif
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
 	puttystruct.huart_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);

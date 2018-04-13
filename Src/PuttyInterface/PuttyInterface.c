@@ -20,11 +20,10 @@
 #include <string.h>
 #include <stdio.h>
 
-char smallStrBuffer[1024];
+//volatile char smallStrBuffer[1024];
 
 #ifdef PUTTY_USB
 #include "usb_device.h"
-bool usb_comm = false;
 #endif
 
 // clears the current line, so new text can be put in
@@ -112,16 +111,12 @@ static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
 	}
 }
 void TextOut(char *str){
-	uint8_t length = strlen(str);
 
 #ifdef PUTTY_USART
-	HAL_UART_Transmit(&huartx, (uint8_t*)str, length, 0xFFFF);
+	HAL_UART_Transmit_IT(&huartx, (uint8_t*)str, putty_length);
 #endif
 #ifdef PUTTY_USB
-	if(usb_comm){
-		while(CDC_Transmit_FS((uint8_t*)str, length) == USBD_BUSY)
-			HAL_Delay(0);
-	}
+	while(CDC_Transmit_FS((uint8_t*)str, putty_length) == USBD_BUSY);
 #endif
 }
 
@@ -137,10 +132,12 @@ void HexOut(uint8_t data[], uint8_t length){
 #endif
 }
 
-
-
 void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
 	pitd->huart_Rx_len = 0;
+	putty_length = 0;
+#ifdef PUTTY_USB
+	usb_comm = false;
+#endif
 	char * startmessage = "----------PuttyInterface_Init-----------\n\r";
 	uprintf(startmessage);
 #ifdef PUTTY_USART
