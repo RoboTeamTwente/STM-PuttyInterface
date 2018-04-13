@@ -118,6 +118,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
+	  uprintf("hall0 allemaal wat\n\r");
+	  uprintf("fijn dat je er bent\n\r");
+	  uprintf("dit is nummer[%f]\n\r", result);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -205,7 +209,6 @@ void HandleCommand(char* input){
 	}
 }*/
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
-	HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
 	puttystruct.huart_Rx_len = Len;
 	memcpy(puttystruct.small_buf, Buf, Len);
 }

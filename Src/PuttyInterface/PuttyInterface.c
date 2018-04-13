@@ -23,6 +23,7 @@
 char smallStrBuffer[1024];
 
 #ifdef PUTTY_USB
+#include "usb_device.h"
 bool usb_comm = false;
 #endif
 
@@ -115,6 +116,7 @@ void TextOut(char *str){
 
 #ifdef PUTTY_USART
 	HAL_UART_Transmit(&huartx, (uint8_t*)str, length, 0xFFFF);
+	hUsbDeviceFS.
 #endif
 #ifdef PUTTY_USB
 	if(usb_comm){
@@ -151,11 +153,18 @@ void PuttyInterface_Update(PuttyInterfaceTypeDef* pitd){
 	if(pitd->huart_Rx_len){
 #ifdef PUTTY_USB
 		usb_comm = true;
+	if(!usb_comm){
+		usb_comm = !!(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED);
 #endif
 		HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
 		pitd->huart_Rx_len = 0;
+		if(pitd->huart_Rx_len){
+			HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
+			pitd->huart_Rx_len = 0;
 #ifdef PUTTY_USART
 		HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
+			HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
 #endif
+		}
 	}
 }
