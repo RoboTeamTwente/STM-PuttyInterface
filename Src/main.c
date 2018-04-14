@@ -65,6 +65,7 @@
 /* Private variables ---------------------------------------------------------*/
 //!!declare this struct
 PuttyInterfaceTypeDef puttystruct;
+bool print_potje = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,12 +124,14 @@ int main(void)
   while (1)
   {
 	  HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
-	  putty_printf("ik heb een potje\n\r");
-	  putty_printf("met vet\n\r");
-	  putty_printf("al op de tafel gezet\n\r");
-	  putty_printf("ik heb een potje potje potje potje vehehehet\n\r");
-	  putty_printf("al op de tafel gezet\n\r");
-	  putty_printf("dit was het %ue couplet\n\r", cnt++);
+	  if(print_potje){
+		  putty_printf("ik heb een potje\n\r");
+		  putty_printf("met vet\n\r");
+		  putty_printf("al op de tafel gezet\n\r");
+		  putty_printf("ik heb een potje potje potje potje vehehehet\n\r");
+		  putty_printf("al op de tafel gezet\n\r");
+		  putty_printf("dit was het %ue couplet\n\r", cnt++);
+	  }
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -205,6 +208,8 @@ void HandleCommand(char* input){
 		putty_printf("started;>)\n\r");
 	}else if(!strcmp(input, "stop")){
 		putty_printf("stopped\n\r");
+	}else if(!strcmp(input, "potje")){
+		print_potje = !print_potje;
 	}
 }
 #ifdef PUTTY_USART

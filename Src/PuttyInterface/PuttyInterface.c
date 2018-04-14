@@ -22,28 +22,74 @@
 
 #include <string.h>
 #include <stdio.h>
-
-//volatile char smallStrBuffer[1024];
-
 #ifdef PUTTY_USB
 #include "usb_device.h"
 #endif
 
 // clears the current line, so new text can be put in
-static inline void ClearLine(){
-	putty_printf("\r");
-	for(uint i = 0; i < MAX_COMMAND_LENGTH; i++)
-		putty_printf(" ");
-	putty_printf("\r");
-}
+static inline void ClearLine();
 
 /*	modulo keeping the value within the real range
  *	val is the start value,
  *	dif is the difference that will be added
  *	modulus is the value at which it wraps
  */
-static inline uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
-{
+static inline uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus);
+/*	This function deals with input by storing values and calling function func with a string of the input when its done
+ * 	also handles up and down keys
+ * 	input is a pointer to the characters to handle,
+ * 	n_chars is the amount of chars to handle
+ * 	func is the function to call when a command is complete
+ */
+static void HandlePcInput(char * input, size_t n_chars, HandleLine func);
+
+void PuttyInterface_HexOut(uint8_t data[], uint8_t length){
+#ifdef PUTTY_USART
+	HAL_UART_Transmit_IT(&huartx, data, length);
+#endif
+#ifdef PUTTY_USB
+	if(usb_comm){
+		CDC_Transmit_FS(data, length);
+		HAL_Delay(1);
+	}
+#endif
+}
+
+void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
+	pitd->huart_Rx_len = 0;
+	putty_length = 0;
+#ifdef PUTTY_USB
+	usb_comm = false;
+#endif
+	char * startmessage = "----------PuttyInterface_Init-----------\n\r";
+	putty_printf(startmessage);
+#ifdef PUTTY_USART
+	HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
+#endif
+}
+
+void PuttyInterface_Update(PuttyInterfaceTypeDef* pitd){
+#ifdef PUTTY_USB
+	if(!usb_comm){
+		usb_comm = !!(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED);
+#endif
+		if(pitd->huart_Rx_len){
+			HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
+			pitd->huart_Rx_len = 0;
+#ifdef PUTTY_USART
+			HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
+#else
+		}
+#endif
+	}
+}
+
+static inline void ClearLine(){
+	static char array[MAX_COMMAND_LENGTH] = {'\r', [0 ... MAX_COMMAND_LENGTH-5] = ' ','\r'};
+	putty_printf(array);
+}
+
+static inline uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus){
 	dif %= modulus;
 	if(dif < 0)
 		dif += modulus;
@@ -52,12 +98,7 @@ static inline uint8_t wrap(uint8_t val, int8_t dif, uint8_t modulus)
 		dif -= modulus;
 	return (uint8_t) dif;
 }
-/*	This function deals with input by storing values and calling function func with a string of the input when its done
- * 	also handles up and down keys
- * 	input is a pointer to the characters to handle,
- * 	n_chars is the amount of chars to handle
- * 	func is the function to call when a command is complete
- */
+
 static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
 	static char PC_Input[COMMANDS_TO_REMEMBER][MAX_COMMAND_LENGTH];			// Matrix which holds the entered commands
 	static uint8_t PC_Input_counter = 0;									// counts the letters in the current forming command
@@ -111,46 +152,5 @@ static void HandlePcInput(char * input, size_t n_chars, HandleLine func){
 			putty_printf("%c", input[0]);
 			PC_Input[commands_counter][PC_Input_counter++] = (char)input[0];
 		}
-	}
-}
-
-void PuttyInterface_HexOut(uint8_t data[], uint8_t length){
-#ifdef PUTTY_USART
-	HAL_UART_Transmit_IT(&huartx, data, length);
-#endif
-#ifdef PUTTY_USB
-	if(usb_comm){
-		CDC_Transmit_FS(data, length);
-		HAL_Delay(1);
-	}
-#endif
-}
-
-void PuttyInterface_Init(PuttyInterfaceTypeDef* pitd){
-	pitd->huart_Rx_len = 0;
-	putty_length = 0;
-#ifdef PUTTY_USB
-	usb_comm = false;
-#endif
-	char * startmessage = "----------PuttyInterface_Init-----------\n\r";
-	putty_printf(startmessage);
-#ifdef PUTTY_USART
-	HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
-#endif
-}
-
-void PuttyInterface_Update(PuttyInterfaceTypeDef* pitd){
-#ifdef PUTTY_USB
-	if(!usb_comm){
-		usb_comm = !!(hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED);
-#endif
-		if(pitd->huart_Rx_len){
-			HandlePcInput((char*)&pitd->small_buf, pitd->huart_Rx_len, pitd->handle);
-			pitd->huart_Rx_len = 0;
-#ifdef PUTTY_USART
-			HAL_UART_Receive_IT(&huartx, pitd->rec_buf, 1);
-#else
-		}
-#endif
 	}
 }
