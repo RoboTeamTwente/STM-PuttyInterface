@@ -125,12 +125,12 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(LD0_GPIO_Port, LD0_Pin);
 	  if(print_potje){
-		  putty_printf("ik heb een potje\n\r");
-		  putty_printf("met vet\n\r");
-		  putty_printf("al op de tafel gezet\n\r");
-		  putty_printf("ik heb een potje potje potje potje vehehehet\n\r");
-		  putty_printf("al op de tafel gezet\n\r");
-		  putty_printf("dit was het %ue couplet\n\r", cnt++);
+		  uprintf("ik heb een potje\n\r");
+		  uprintf("met vet\n\r");
+		  uprintf("al op de tafel gezet\n\r");
+		  uprintf("ik heb een potje potje potje potje vehehehet\n\r");
+		  uprintf("al op de tafel gezet\n\r");
+		  uprintf("dit was het %ue couplet\n\r", cnt++);
 	  }
   /* USER CODE END WHILE */
 
@@ -205,22 +205,14 @@ void SystemClock_Config(void)
 //!!this function will receive the commands when the are complete strcmp(input, "command") will return zero if "command" is equal to input
 void HandleCommand(char* input){
 	if(!strcmp(input, "start")){
-		putty_printf("started;>)\n\r");
+		uprintf("started;>)\n\r");
 	}else if(!strcmp(input, "stop")){
-		putty_printf("stopped\n\r");
+		uprintf("stopped\n\r");
 	}else if(!strcmp(input, "potje")){
 		print_potje = !print_potje;
 	}
 }
-#ifdef PUTTY_USART
-//!! function gets called from usbd_cdc_if but needs to be added there in both c and h file if uart is used include this function"
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	if(huart->Instance == huartx.Instance){
-		puttystruct.huart_Rx_len = 1;
-		puttystruct.small_buf[0] = *(huart->pRxBuffPtr-1);
-	}
-}
-#endif
+
 #ifdef PUTTY_USB
 void USB_RxCallBack(uint8_t* Buf, uint32_t Len){
 	puttystruct.huart_Rx_len = Len;

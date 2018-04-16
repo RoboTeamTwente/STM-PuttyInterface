@@ -9,7 +9,6 @@
 
 <filestoremove>
     <file>
-    <name>..\Src\dma.c</name>
     </file>
 </filestoremove>
 

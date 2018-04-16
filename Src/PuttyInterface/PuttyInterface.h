@@ -11,7 +11,7 @@
 #define PUTTY_USART // or choose #define PUTTY_USART
 
 #ifdef PUTTY_USART
-#define huartx huart1
+#define putty_huart huart1
 #endif /* PUTTY_USART */
 
 #ifdef PUTTY_USART
@@ -30,14 +30,14 @@
 
 // function that works like normal printf()
 #ifdef PUTTY_USART
-#define putty_printf(...) do { \
-	while(huartx.gState != HAL_UART_STATE_READY);\
+#define uprintf(...) do { \
+	while(putty_huart.gState != HAL_UART_STATE_READY);\
 	putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
-	HAL_UART_Transmit_IT(&huartx, (uint8_t*)smallStrBuffer, putty_length);} while(0)
+	HAL_UART_Transmit_IT(&putty_huart, (uint8_t*)smallStrBuffer, putty_length);} while(0)
 #endif
 #ifdef PUTTY_USB
 bool usb_comm;
-#define putty_printf(...) do { \
+#define uprintf(...) do { \
 		if(usb_comm){\
 			putty_length = sprintf(smallStrBuffer, __VA_ARGS__); \
 			while(CDC_Transmit_FS((uint8_t*)smallStrBuffer, putty_length) == USBD_BUSY);\
