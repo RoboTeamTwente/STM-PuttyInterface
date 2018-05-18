@@ -20,7 +20,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "usb_device.h"
+#include "usbd_cdc.h"
+
 char smallStrBuffer[1024];
+uint8_t TxBuf[1024];
 
 #ifdef PUTTY_USB
 bool usb_comm = false;
@@ -118,8 +122,9 @@ void TextOut(char *str){
 #endif
 #ifdef PUTTY_USB
 	if(usb_comm){
-		CDC_Transmit_FS((uint8_t*)str, length);
-		HAL_Delay(1);
+		while (((USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData)->TxState != 0);
+		memcpy(TxBuf,str, length);
+		CDC_Transmit_FS(TxBuf, length);
 	}
 #endif
 }
@@ -130,8 +135,9 @@ void HexOut(uint8_t data[], uint8_t length){
 #endif
 #ifdef PUTTY_USB
 	if(usb_comm){
+		while (((USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData)->TxState != 0);
+		memcpy(TxBuf,data, length);
 		CDC_Transmit_FS(data, length);
-		HAL_Delay(1);
 	}
 #endif
 }
